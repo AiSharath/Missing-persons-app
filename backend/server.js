@@ -10,8 +10,8 @@ app.use(cors());
 app.use(express.json());
 
 
-app.listen(PORT,()=>{
-    console.log(`Server is running on ${PORT}`)
+app.listen(process.env.PORT,()=>{
+    console.log(`Server is running on ${process.env.PORT}`)
 });
 
 app.get("/",(req,res)=>{
