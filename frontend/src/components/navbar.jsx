@@ -16,7 +16,7 @@ function Navbar() {
       {/* Right side: Links */}
       <div style={{ display: "flex", gap: "20px" }}>
         <a href="#" style={{ color: "white", textDecoration: "none" }}>Home</a>
-        <a href="#" style={{ color: "white", textDecoration: "none" }}>Report Missing</a>
+        <a href="/registerMissing" style={{ color: "white", textDecoration: "none" }}>Report Missing</a>
         <a href="#" style={{ color: "white", textDecoration: "none" }}>About</a>
         <a href="#" style={{ color: "white", textDecoration: "none" }}>Contact</a>
       </div>
