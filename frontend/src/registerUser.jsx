@@ -1,4 +1,5 @@
 import {useState} from "react";
+import "./RegisterUser.css"
 
 function RegisterUser(){
     
@@ -22,7 +23,7 @@ function RegisterUser(){
 
     return(
         <>
-            <form onSubmit={handleSubmit} className="form-container">
+            <form onSubmit={handleSubmit} className="form-container" >
                 <div className="inside-form">
                     <h2>Register</h2>
                     <input 
