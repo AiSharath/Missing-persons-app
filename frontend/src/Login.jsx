@@ -18,7 +18,6 @@ function Login(){
                     placeholder="Enter your password"
                     name="password"
                     onChange={handleChange}
-                    value={}
                     required
                 />
                 <button>Login</button>

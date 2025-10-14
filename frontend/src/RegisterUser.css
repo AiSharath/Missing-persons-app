@@ -10,11 +10,13 @@
 .inside-form{
     display:flex;
     flex-direction: column;
-    gap:12px;
-    padding: 20px;
+    gap:16px; /* slightly more space */
+    padding: 40px; /* more padding */
     background-color: antiquewhite;
     border: 4px solid black ;
-    border-radius: 5px;  
+    border-radius: 8px;  
+    min-width: 380px; /* wider */
+    align-items: center; /* center all children horizontally */
 }
 
 .inside-form h2{
@@ -22,13 +24,30 @@
 }
 
 .inside-form input{
-    width:200px;
-    height:30px;
+    width: 320px; /* wider */
+    height: 44px;  /* taller */
     border-radius: 5px;
+    font-size: 1.15rem; /* bigger text */
+    padding-left: 12px;
+}
+
+.inside-form input::placeholder {
+    font-size: 1.08rem; /* bigger placeholder */
+    opacity: 0.8;
 }
 
 .inside-form button{
-    font-size: larger;
+    width: 320px; /* same as input */
+    height: 44px;  /* same as input */
+    font-size: 1.15rem;
     border-radius: 5px;
     background-color: cyan;
+    border: none;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s;
+}
+
+.inside-form button:hover {
+    background-color: #00bcd4;
 }
