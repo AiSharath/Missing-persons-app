@@ -1,0 +1,78 @@
+/* Clean, centered layout. inputs and button same width. Larger placeholders */
+* { box-sizing: border-box; }
+
+.container-form{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: 'Courier New', Courier, monospace;
+    background: #f5f7f9;
+    margin: 0;
+    padding: 20px;
+}
+
+.form-inside{
+    width: 380px;               /* form width */
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 36px;
+    background-color: antiquewhite;
+    border: 3px solid #111;
+    border-radius: 10px;
+    align-items: stretch;       /* make children fill width */
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+
+/* Heading centered and spaced */
+.form-inside h2{
+    margin: 0 0 4px 0;
+    text-align: center;
+    font-size: 1.3rem;
+}
+
+/* Inputs and button share sizing and radius */
+.form-inside input,
+.form-inside button{
+    width: 100%;
+    height: 46px;
+    border-radius: 6px;
+    font-size: 1rem;
+    padding: 0 12px;
+    border: 1px solid #bbb;
+    outline: none;
+}
+
+/* Placeholder slightly larger and more visible */
+.form-inside input::placeholder{
+    font-size: 1.05rem;
+    color: #666;
+    opacity: 0.95;
+}
+
+/* Input focus */
+.form-inside input:focus{
+    border-color: #00bcd4;
+    box-shadow: 0 0 0 3px rgba(0,188,212,0.08);
+}
+
+/* Button styling */
+.form-inside button{
+    background-color: #00e5ff;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background .18s, transform .08s;
+}
+.form-inside button:hover{
+    background-color: #00bcd4;
+    transform: translateY(-1px);
+}
+
+/* Smaller screens: make form a bit narrower */
+@media (max-width: 420px){
+    .form-inside{ width: 92%; padding: 24px; }
+    .form-inside input,
+    .form-inside button{ height: 44px; font-size: 0.98rem; }
+}
