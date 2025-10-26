@@ -48,6 +48,26 @@ function Home(){
                     <li>Searching option for missing and found person</li>
                 </ol>
             </div>
+
+            <div className="about" id="about">
+                <h2>About Us</h2>
+                <p>We are a team of dedicated volunteers, tech enthusiasts, and concerned citizens committed to making a difference. 
+                    Our mission is simple: leverage technology to reconnect families and communities with their missing loved ones. 
+                    Every report counts, every user helps, and every reunion matters.
+                </p>
+            </div>
+
+            <div className="contact" id="contact">
+                <h2>Contact Us</h2>
+                <p>Email: support@missingpersonapp.com</p>
+                <p>Phone: +91 98765 43210</p>
+                <p>Follow us on:</p>
+                <ul>
+                    <li><a href="https://twitter.com/yourapp" target="_blank">Twitter</a></li>
+                    <li><a href="https://facebook.com/yourapp" target="_blank">Facebook</a></li>
+                    <li><a href="https://instagram.com/yourapp" target="_blank">Instagram</a></li>
+                </ul>
+            </div>
         </div>
     </>
     );
