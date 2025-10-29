@@ -1,20 +1,150 @@
-body{
-    font-family: sans-serif;
-    background-color: azure;
+body {
+    font-family: "Poppins", sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f8f9fa;
+    color: #222;
 }
 
-.hero-section{
-    font-size: 1rem;
+/* Hero Section */
+.hero-section {
+    width: 100%;
+    text-align: center;
+    padding: 80px 20px;
+    background: linear-gradient(135deg, #005f73, #0a9396);
+    color: #fff;
 }
 
-.app-motto{
-    font-size: 1rem;
+.hero-section h2 {
+    font-size: 36px;
+    margin-bottom: 15px;
 }
 
-.working{
-    font-size: 1rem;
+.hero-section p {
+    max-width: 900px;
+    margin: 0 auto;
+    line-height: 1.6;
+    font-size: 18px;
 }
 
-.feature{
-    font-size: 1rem;
+/* App Motto */
+.app-motto {
+    padding: 60px 20px;
+    text-align: center;
 }
+
+.app-motto h2 {
+    font-size: 32px;
+    color: #005f73;
+}
+
+.app-motto p {
+    max-width: 900px;
+    margin: 10px auto;
+    line-height: 1.7;
+}
+
+/* How It Works */
+.working {
+    background-color: #e9ecef;
+    padding: 60px 20px;
+}
+
+.working h2 {
+    text-align: center;
+    color: #0a9396;
+    font-size: 30px;
+}
+
+.working ol {
+    max-width: 800px;
+    margin: 20px auto;
+    font-size: 18px;
+    line-height: 1.7;
+}
+
+.working li {
+    margin-bottom: 10px;
+}
+
+/* Features */
+.feature {
+    padding: 50px 20px;
+    text-align: center;
+}
+
+.feature h2 {
+    font-size: 30px;
+    color: #005f73;
+}
+
+.feature ol {
+    list-style: none;
+    padding: 0;
+}
+
+.feature li {
+    background: #0a9396;
+    color: #fff;
+    margin: 12px auto;
+    padding: 12px;
+    width: 55%;
+    border-radius: 6px;
+    font-size: 18px;
+}
+
+/* About Us */
+.about {
+    padding: 60px 20px;
+    background: #94d2bd;
+    text-align: center;
+}
+
+.about h2 {
+    font-size: 32px;
+    color: #023047;
+}
+
+.about p {
+    max-width: 900px;
+    margin: 10px auto;
+    font-size: 18px;
+    line-height: 1.6;
+}
+
+/* Contact Section */
+.contact {
+    padding: 50px 20px;
+    text-align: center;
+    background: #005f73;
+    color: #fff;
+}
+
+.contact h2 {
+    font-size: 30px;
+}
+
+.contact p {
+    font-size: 17px;
+    margin: 5px 0;
+}
+
+.contact ul {
+    list-style: none;
+    padding: 0;
+}
+
+.contact li {
+    margin: 8px 0;
+}
+
+.contact a {
+    text-decoration: none;
+    color: #ffdd57;
+    font-weight: 600;
+}
+
+.contact a:hover {
+    text-decoration: underline;
+}
+
