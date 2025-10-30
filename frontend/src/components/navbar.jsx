@@ -9,7 +9,6 @@ function Navbar() {
         justifyContent: "space-between",
         alignItems: "center",
         color: "white",
-        borderRadius:"5px",
         fontSize:"17px"
       }}
     >
