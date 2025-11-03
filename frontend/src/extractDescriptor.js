@@ -14,3 +14,41 @@ export const getFaceDescriptor = async (file) => {
 
   return Array.from(detection.descriptor);
 };
+
+export const sendFaceDescriptor = async (descriptor) => {
+  try {
+    const response = await fetch('http://localhost:5000/api/users/face-match', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ descriptor }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Face matching failed');
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error('Error in face matching:', error);
+    throw error;
+  }
+};
+
+// Usage example:
+export const handleFaceMatching = async (file) => {
+  try {
+    // First get the descriptor
+    const descriptor = await getFaceDescriptor(file);
+    
+    // Then send it to backend
+    const matchResult = await sendFaceDescriptor(descriptor);
+    
+    return matchResult;
+  } catch (error) {
+    console.error('Face matching process failed:', error);
+    throw error;
+  }
+};
