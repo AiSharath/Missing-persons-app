@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./Register.css";
+import { registerUser } from "./registerUser.jsx";
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -8,6 +9,9 @@ function Register() {
     lastSeen: "",
     photo: null,
   });
+
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -18,11 +22,45 @@ function Register() {
     }
   };
 
-  const handleSubmit = (e) => {
+  async function handleSubmit(e) {
     e.preventDefault();
-    console.log("Form Submitted:", formData);
-    // TODO: send formData to backend later
-  };
+    setError("");
+    setLoading(true);
+    
+    try {
+      // Extract face descriptor from photo if available
+      let descriptor = null;
+      if (formData.photo) {
+        try {
+          const { getFaceDescriptor } = await import("./extractDescriptor.js");
+          descriptor = await getFaceDescriptor(formData.photo);
+        } catch (faceErr) {
+          console.warn("Face detection failed, continuing without descriptor:", faceErr);
+        }
+      }
+
+      // For now, this form is for reporting missing persons
+      // We'll need to create a separate endpoint for this
+      // For now, let's use the user registration as a workaround
+      const result = await registerUser({ 
+        name: formData.name, 
+        email: `${formData.name.replace(/\s+/g, '').toLowerCase()}@missing.local`, 
+        password: "temp123", 
+        descriptor 
+      });
+      
+      console.log("Missing person reported:", result);
+      alert("Missing person report submitted successfully!");
+      // Reset form
+      setFormData({ name: "", age: "", lastSeen: "", photo: null });
+    } catch (err) {
+      console.error("Report failed:", err.message || err);
+      setError(err.message || "Report submission failed");
+      alert(err.message || "Report submission failed");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="register-container">
@@ -72,7 +110,10 @@ function Register() {
           />
         </label>
 
-        <button type="submit">Register</button>
+        {error && <div style={{ color: "red", marginTop: 8 }}>{error}</div>}
+        <button type="submit" disabled={loading}>
+          {loading ? "Submitting..." : "Register"}
+        </button>
       </form>
     </div>
   );

@@ -20,6 +20,7 @@ function Navbar() {
         <a href="/register" style={{ color: "white", textDecoration: "none" }}>Register</a>
         <a href="/login" style={{ color: "white", textDecoration: "none" }}>Login</a>
         <a href="/report" style={{ color: "white", textDecoration: "none" }}>Report Missing</a>
+        <a href="/face-match" style={{ color: "white", textDecoration: "none" }}>🔍 Search Face</a>
         <a href="#about" style={{ color: "white", textDecoration: "none" }}>About</a>
         <a href="#contact" style={{ color: "white", textDecoration: "none" }}>Contact</a>
       </div>

@@ -17,7 +17,8 @@ export const getFaceDescriptor = async (file) => {
 
 export const sendFaceDescriptor = async (descriptor) => {
   try {
-    const response = await fetch('http://localhost:5000/api/users/face-match', {
+    const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const response = await fetch(`${API}/api/face/match`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
