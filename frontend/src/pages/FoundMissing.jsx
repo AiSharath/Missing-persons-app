@@ -23,8 +23,10 @@ export default function FoundMissing() {
       }
     };
 
-    fetchList("/api/found", setFoundList, "found");
-    fetchList("/api/missing", setMissingList, "missing");
+    // For now, fetch all users as a placeholder
+    // In a real app, you'd have separate endpoints for found/missing persons
+    fetchList("/api/users", setFoundList, "found");
+    fetchList("/api/users", setMissingList, "missing");
   }, []);
 
   const renderRecord = (p) => (
