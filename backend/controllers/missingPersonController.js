@@ -73,11 +73,16 @@ export const registerMissingPerson = async (req, res) => {
 export const getMissingPersons = async (req, res) => {
   try {
     const { status } = req.query;
-    const query = status ? { status } : {};
+    // Build query - if status is provided, filter by it, otherwise get all
+    const query = status ? { status: status.toLowerCase() } : {};
+    
+    console.log(`Fetching missing persons with query:`, query);
     
     const missingPersons = await MissingPerson.find(query)
       .select("-faceDescriptor")
       .sort({ createdAt: -1 });
+    
+    console.log(`Found ${missingPersons.length} persons with status: ${status || 'all'}`);
     
     return res.json(missingPersons);
   } catch (err) {

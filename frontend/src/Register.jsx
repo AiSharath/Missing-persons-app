@@ -17,18 +17,27 @@ function Register() {
   const [modelsLoading, setModelsLoading] = useState(true);
   const fileInputRef = useRef(null);
 
-  // Load face models on component mount
+  // Load face models on component mount - non-blocking
   useEffect(() => {
     const initializeModels = async () => {
       try {
         setModelsLoading(true);
+        setError(""); // Clear any previous errors
         console.log("Loading face recognition models...");
-        await loadFaceModels();
+        
+        // Add timeout to prevent infinite loading
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error("Model loading timeout after 30 seconds")), 30000)
+        );
+        
+        await Promise.race([loadFaceModels(), timeoutPromise]);
         setModelsLoaded(true);
         console.log("✅ Face models loaded successfully");
       } catch (err) {
         console.error("Failed to load face models:", err);
-        setError("Face recognition models failed to load. Face descriptor will not be extracted.");
+        setModelsLoaded(false);
+        // Don't set error state - just log it, form should still work without face recognition
+        console.warn("Face recognition will be disabled, but registration will still work");
       } finally {
         setModelsLoading(false);
       }
@@ -77,7 +86,7 @@ function Register() {
           // Add timeout to prevent hanging
           const descriptorPromise = getFaceDescriptor(formData.photo);
           const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error("Face detection timeout")), 15000)
+            setTimeout(() => reject(new Error("Face detection timeout")), 10000)
           );
           descriptor = await Promise.race([descriptorPromise, timeoutPromise]);
           
@@ -88,7 +97,7 @@ function Register() {
             descriptor = null;
           }
         } catch (faceErr) {
-          console.warn("Face detection failed, continuing without descriptor:", faceErr);
+          console.warn("Face detection failed, continuing without descriptor:", faceErr.message);
           descriptor = null;
           // Continue without descriptor - it's optional
         }
@@ -221,11 +230,11 @@ function Register() {
         )}
         {!modelsLoaded && !modelsLoading && (
           <div style={{ color: "orange", marginTop: 8, fontSize: "14px" }}>
-            ⚠️ Face recognition models not loaded - face matching will be disabled
+            ⚠️ Face recognition models not loaded - face matching will be disabled (registration will still work)
           </div>
         )}
         {error && <div style={{ color: "red", marginTop: 8 }}>{error}</div>}
-        <button type="submit" disabled={loading || modelsLoading}>
+        <button type="submit" disabled={loading}>
           {loading ? "Submitting..." : "Register"}
         </button>
       </form>
