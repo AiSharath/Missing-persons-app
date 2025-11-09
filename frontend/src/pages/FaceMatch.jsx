@@ -12,20 +12,26 @@ export default function FaceMatch() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
 
-  // Load face models on component mount
+  // Load face models on component mount - non-blocking
   useEffect(() => {
     const initializeModels = async () => {
       try {
-        setLoading(true);
+        // Don't set loading to true - let the UI render
         setError("");
-        await loadFaceModels();
+        console.log("Loading face recognition models...");
+        
+        // Add timeout to prevent infinite loading
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error("Model loading timeout after 30 seconds")), 30000)
+        );
+        
+        await Promise.race([loadFaceModels(), timeoutPromise]);
         setModelsLoaded(true);
         console.log("Face models loaded successfully");
       } catch (err) {
         console.error("Failed to load face models:", err);
+        setModelsLoaded(false);
         setError(err.message || "Failed to load face recognition models. Please check your internet connection and try again.");
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -37,15 +43,18 @@ export default function FaceMatch() {
     setError("");
     const initializeModels = async () => {
       try {
-        setLoading(true);
-        await loadFaceModels();
+        // Add timeout to prevent infinite loading
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error("Model loading timeout after 30 seconds")), 30000)
+        );
+        
+        await Promise.race([loadFaceModels(), timeoutPromise]);
         setModelsLoaded(true);
         console.log("Face models loaded successfully");
       } catch (err) {
         console.error("Failed to load face models:", err);
+        setModelsLoaded(false);
         setError(err.message || "Failed to load face recognition models. Please check your internet connection and try again.");
-      } finally {
-        setLoading(false);
       }
     };
     initializeModels();

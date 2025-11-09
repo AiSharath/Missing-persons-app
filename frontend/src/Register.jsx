@@ -17,14 +17,20 @@ function Register() {
   const [modelsLoading, setModelsLoading] = useState(true);
   const fileInputRef = useRef(null);
 
-  // Load face models on component mount
+  // Load face models on component mount - non-blocking
   useEffect(() => {
     const initializeModels = async () => {
       try {
         setModelsLoading(true);
         setError(""); // Clear any previous errors
         console.log("Loading face recognition models...");
-        await loadFaceModels();
+        
+        // Add timeout to prevent infinite loading
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error("Model loading timeout after 30 seconds")), 30000)
+        );
+        
+        await Promise.race([loadFaceModels(), timeoutPromise]);
         setModelsLoaded(true);
         console.log("✅ Face models loaded successfully");
       } catch (err) {

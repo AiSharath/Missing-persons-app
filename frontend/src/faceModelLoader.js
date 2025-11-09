@@ -158,14 +158,16 @@ export const loadFaceModels = async () => {
 
   if (!loaded) {
     const errorDetails = lastError?.message || "Unknown error";
-    throw new Error(
+    const errorMessage = 
       `Failed to load face recognition models from all sources.\n\n` +
       `Tried: ${MODEL_URLS.join(", ")}\n\n` +
       `Last error: ${errorDetails}\n\n` +
       `Please ensure:\n` +
       `1. Models are in /public/models directory\n` +
       `2. You have internet connection for CDN fallback\n` +
-      `3. Check browser console for detailed errors`
-    );
+      `3. Check browser console for detailed errors`;
+    
+    console.error(errorMessage);
+    throw new Error(errorMessage);
   }
 };
