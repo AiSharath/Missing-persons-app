@@ -9,15 +9,15 @@ export default function FoundMissing() {
   const [loading, setLoading] = useState({ found: true, missing: true });
   const [error, setError] = useState(null);
 
-  useEffect(() => {
+  const fetchData = () => {
     const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
     const fetchList = async (status, setter, key) => {
       try {
         setLoading((prev) => ({ ...prev, [key]: true }));
-        const url = status 
-          ? `${API}/api/missing-persons?status=${status}`
-          : `${API}/api/missing-persons?status=missing`;
+        const statusParam = status || 'missing';
+        // Add cache-busting to ensure fresh data
+        const url = `${API}/api/missing-persons?status=${statusParam}&_t=${Date.now()}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error(`Failed to fetch ${key}`);
         const data = await res.json();
@@ -35,6 +35,23 @@ export default function FoundMissing() {
     // Fetch found and missing persons
     fetchList("found", setFoundList, "found");
     fetchList("missing", setMissingList, "missing");
+  };
+
+  useEffect(() => {
+    fetchData();
+    
+    // Refresh data when component becomes visible (e.g., user switches back to tab)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchData();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   const renderRecord = (p) => (
@@ -86,6 +103,23 @@ export default function FoundMissing() {
             className={`tab-button ${tab === "found" ? "active" : ""}`}
           >
             ✅ Found ({foundList.length})
+          </button>
+          <button
+            onClick={fetchData}
+            className="refresh-button"
+            title="Refresh data"
+            style={{
+              marginLeft: "auto",
+              padding: "8px 16px",
+              backgroundColor: "#007bff",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
+              fontSize: "14px"
+            }}
+          >
+            🔄 Refresh
           </button>
         </div>
 

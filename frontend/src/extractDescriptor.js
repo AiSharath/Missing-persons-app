@@ -1,30 +1,58 @@
 import * as faceapi from "face-api.js";
 
 export const getFaceDescriptor = async (file) => {
-  // Check if models are loaded
-  const isModelLoaded = faceapi.nets.ssdMobilenetv1.isLoaded && 
-                        faceapi.nets.faceLandmark68Net.isLoaded && 
-                        faceapi.nets.faceRecognitionNet.isLoaded;
+  // Check if models are loaded - with retry logic
+  let isModelLoaded = faceapi.nets.ssdMobilenetv1.isLoaded && 
+                      faceapi.nets.faceLandmark68Net.isLoaded && 
+                      faceapi.nets.faceRecognitionNet.isLoaded;
+  
+  // Sometimes the isLoaded flag takes a moment to update
+  if (!isModelLoaded) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+    isModelLoaded = faceapi.nets.ssdMobilenetv1.isLoaded && 
+                    faceapi.nets.faceLandmark68Net.isLoaded && 
+                    faceapi.nets.faceRecognitionNet.isLoaded;
+  }
   
   if (!isModelLoaded) {
     throw new Error("Face recognition models are not loaded. Please wait for models to load.");
   }
 
   console.log("Converting file to image...");
-  const image = await faceapi.bufferToImage(file);
-  console.log("Image loaded, detecting face...");
+  let image;
+  try {
+    image = await faceapi.bufferToImage(file);
+    console.log("Image loaded, detecting face...");
+  } catch (error) {
+    console.error("Error converting file to image:", error);
+    throw new Error("Failed to load image. Please ensure the file is a valid image.");
+  }
 
-  const detection = await faceapi
-    .detectSingleFace(image)
-    .withFaceLandmarks()
-    .withFaceDescriptor();
+  let detection;
+  try {
+    detection = await faceapi
+      .detectSingleFace(image)
+      .withFaceLandmarks()
+      .withFaceDescriptor();
+  } catch (error) {
+    console.error("Error detecting face:", error);
+    throw new Error("Failed to detect face. Please try another image.");
+  }
 
   if (!detection) {
     throw new Error("No face detected. Try another image.");
   }
 
+  if (!detection.descriptor) {
+    throw new Error("Face detected but descriptor extraction failed. Please try another image.");
+  }
+
   const descriptor = Array.from(detection.descriptor);
   console.log(`Face detected! Descriptor length: ${descriptor.length}`);
+  
+  if (descriptor.length === 0) {
+    throw new Error("Face descriptor is empty. Please try another image.");
+  }
   
   return descriptor;
 };

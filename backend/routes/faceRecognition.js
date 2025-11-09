@@ -19,12 +19,14 @@ router.post('/match', async (req, res) => {
     }
     
     // Get all records from both User and MissingPerson collections that have face descriptors
+    // Only match against missing persons (not found ones) and users
     const [users, missingPersons] = await Promise.all([
       User.find({ 
         faceDescriptor: { $exists: true, $ne: [], $not: { $size: 0 } }
       }),
       MissingPerson.find({ 
-        faceDescriptor: { $exists: true, $ne: [], $not: { $size: 0 } }
+        faceDescriptor: { $exists: true, $ne: [], $not: { $size: 0 } },
+        status: 'missing' // Only match against missing persons, not found ones
       })
     ]);
     
@@ -53,18 +55,41 @@ router.post('/match', async (req, res) => {
     });
     
     if (result.match) {
-      // If it's a missing person with status "missing", update it to "found"
-      if (result.match.type === 'missingPerson' && result.match.status === 'missing') {
+      // If it's a missing person, update it to "found"
+      let updatedPerson = null;
+      if (result.match.type === 'missingPerson') {
         try {
-          await MissingPerson.findByIdAndUpdate(
+          // Ensure we're updating the status correctly with validation
+          updatedPerson = await MissingPerson.findByIdAndUpdate(
             result.match._id,
-            { status: 'found', updatedAt: new Date() },
-            { new: true }
+            { $set: { status: 'found' } },
+            { new: true, runValidators: true }
           );
-          console.log(`✅ Auto-updated ${result.match.name} status from 'missing' to 'found'`);
+          
+          if (!updatedPerson) {
+            console.error(`❌ Failed to update person ${result.match._id} - person not found`);
+          } else {
+            // Verify the update was successful by checking the database
+            const verifyPerson = await MissingPerson.findById(result.match._id);
+            if (verifyPerson && verifyPerson.status === 'found') {
+              console.log(`✅ Auto-updated ${result.match.name} (ID: ${result.match._id}) status from 'missing' to 'found'`);
+              console.log(`   Verified: Person status in DB is now: ${verifyPerson.status}`);
+            } else {
+              console.error(`❌ Status update verification failed - status in DB is: ${verifyPerson ? verifyPerson.status : 'null'}`);
+              // Still use the updated person if available
+              if (updatedPerson.status === 'found') {
+                updatedPerson = verifyPerson || updatedPerson;
+              }
+            }
+          }
         } catch (updateErr) {
-          console.error("Error updating status:", updateErr);
-          // Continue even if update fails
+          console.error("❌ Error updating status:", updateErr);
+          console.error("   Error details:", {
+            message: updateErr.message,
+            name: updateErr.name,
+            stack: updateErr.stack
+          });
+          // Continue even if update fails, use original match data
         }
       }
       
@@ -79,14 +104,17 @@ router.post('/match', async (req, res) => {
           createdAt: result.match.createdAt
         };
       } else {
+        // Use updated person data if available, otherwise use original match data
+        const personToUse = updatedPerson || result.match;
         personData = {
-          _id: result.match._id,
-          name: result.match.name,
-          age: result.match.age,
-          lastSeen: result.match.lastSeen,
+          _id: personToUse._id,
+          name: personToUse.name,
+          age: personToUse.age,
+          lastSeen: personToUse.lastSeen,
           status: 'found', // Status is now 'found' after update
           type: 'missingPerson',
-          createdAt: result.match.createdAt
+          createdAt: personToUse.createdAt,
+          updatedAt: personToUse.updatedAt
         };
       }
       
@@ -99,7 +127,7 @@ router.post('/match', async (req, res) => {
         user: personData, // Keep for backward compatibility
         confidence: confidence,
         distance: result.distance,
-        statusUpdated: result.match.type === 'missingPerson' && result.match.status === 'missing'
+        statusUpdated: result.match.type === 'missingPerson' && !!updatedPerson
       });
     } else {
       console.log("❌ No match found (best distance:", result.distance, "threshold: 0.6)");

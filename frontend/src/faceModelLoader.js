@@ -24,10 +24,15 @@ export const loadFaceModels = async () => {
             console.warn(`Manifest file not accessible at ${testUrl}, status: ${response.status}`);
             continue;
           }
-          // Verify we can actually read the manifest
+          // Verify we can actually read the manifest - be more lenient with validation
           const manifest = await response.json();
-          if (!manifest || !Array.isArray(manifest) || manifest.length === 0) {
-            console.warn(`Invalid manifest file at ${testUrl}`);
+          if (!manifest) {
+            console.warn(`Invalid manifest file at ${testUrl} - null or undefined`);
+            continue;
+          }
+          // Accept both array and object formats
+          if (Array.isArray(manifest) && manifest.length === 0) {
+            console.warn(`Empty manifest array at ${testUrl}`);
             continue;
           }
           console.log(`✅ Manifest file accessible and valid at ${testUrl}`);
@@ -38,17 +43,36 @@ export const loadFaceModels = async () => {
       }
       
       // Load models sequentially for better error reporting
+      // Use Promise.allSettled to load all models and handle errors gracefully
       console.log(`Loading ssdMobilenetv1 from ${MODEL_URL}...`);
-      await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
-      console.log(`✅ ssdMobilenetv1 loaded`);
+      try {
+        await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
+        console.log(`✅ ssdMobilenetv1 loaded`);
+      } catch (err) {
+        console.error(`Failed to load ssdMobilenetv1:`, err);
+        throw new Error(`Failed to load ssdMobilenetv1: ${err.message}`);
+      }
       
       console.log(`Loading faceLandmark68Net from ${MODEL_URL}...`);
-      await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-      console.log(`✅ faceLandmark68Net loaded`);
+      try {
+        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+        console.log(`✅ faceLandmark68Net loaded`);
+      } catch (err) {
+        console.error(`Failed to load faceLandmark68Net:`, err);
+        throw new Error(`Failed to load faceLandmark68Net: ${err.message}`);
+      }
       
       console.log(`Loading faceRecognitionNet from ${MODEL_URL}...`);
-      await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-      console.log(`✅ faceRecognitionNet loaded`);
+      try {
+        await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+        console.log(`✅ faceRecognitionNet loaded`);
+      } catch (err) {
+        console.error(`Failed to load faceRecognitionNet:`, err);
+        throw new Error(`Failed to load faceRecognitionNet: ${err.message}`);
+      }
+
+      // Wait a bit for models to fully initialize
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       // Verify models are actually loaded
       const isModelLoaded = faceapi.nets.ssdMobilenetv1.isLoaded && 
@@ -56,7 +80,15 @@ export const loadFaceModels = async () => {
                             faceapi.nets.faceRecognitionNet.isLoaded;
       
       if (!isModelLoaded) {
-        throw new Error("Models loaded but isLoaded flags are false");
+        // Sometimes the isLoaded flag takes a moment to update, check again
+        await new Promise(resolve => setTimeout(resolve, 200));
+        const isModelLoadedRetry = faceapi.nets.ssdMobilenetv1.isLoaded && 
+                                  faceapi.nets.faceLandmark68Net.isLoaded && 
+                                  faceapi.nets.faceRecognitionNet.isLoaded;
+        
+        if (!isModelLoadedRetry) {
+          throw new Error("Models loaded but isLoaded flags are false after retry");
+        }
       }
 
       console.log(`✅ All face models loaded and verified from: ${MODEL_URL}`);
