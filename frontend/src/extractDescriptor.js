@@ -1,7 +1,18 @@
 import * as faceapi from "face-api.js";
 
 export const getFaceDescriptor = async (file) => {
+  // Check if models are loaded
+  const isModelLoaded = faceapi.nets.ssdMobilenetv1.isLoaded && 
+                        faceapi.nets.faceLandmark68Net.isLoaded && 
+                        faceapi.nets.faceRecognitionNet.isLoaded;
+  
+  if (!isModelLoaded) {
+    throw new Error("Face recognition models are not loaded. Please wait for models to load.");
+  }
+
+  console.log("Converting file to image...");
   const image = await faceapi.bufferToImage(file);
+  console.log("Image loaded, detecting face...");
 
   const detection = await faceapi
     .detectSingleFace(image)
@@ -12,7 +23,10 @@ export const getFaceDescriptor = async (file) => {
     throw new Error("No face detected. Try another image.");
   }
 
-  return Array.from(detection.descriptor);
+  const descriptor = Array.from(detection.descriptor);
+  console.log(`Face detected! Descriptor length: ${descriptor.length}`);
+  
+  return descriptor;
 };
 
 export const sendFaceDescriptor = async (descriptor) => {

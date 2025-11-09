@@ -1,4 +1,5 @@
 import Navbar from "./components/navbar";
+import { Link } from "react-router-dom";
 import "./Home.css"
 function Home(){
     return(
@@ -47,6 +48,84 @@ function Home(){
                     <li>Easy reporting of missing person</li>
                     <li>Searching option for missing and found person</li>
                 </ol>
+            </div>
+
+            <div className="action-buttons" style={{ 
+                display: "flex", 
+                justifyContent: "center", 
+                gap: "20px", 
+                margin: "40px 0",
+                flexWrap: "wrap"
+            }}>
+                <Link to="/report" style={{
+                    padding: "15px 30px",
+                    backgroundColor: "#667eea",
+                    color: "white",
+                    textDecoration: "none",
+                    borderRadius: "8px",
+                    fontSize: "1.1rem",
+                    fontWeight: "600",
+                    transition: "all 0.3s ease",
+                    boxShadow: "0 4px 15px rgba(102, 126, 234, 0.4)",
+                    display: "inline-block"
+                }}
+                onMouseEnter={(e) => {
+                    e.target.style.transform = "translateY(-2px)";
+                    e.target.style.boxShadow = "0 6px 20px rgba(102, 126, 234, 0.6)";
+                }}
+                onMouseLeave={(e) => {
+                    e.target.style.transform = "translateY(0)";
+                    e.target.style.boxShadow = "0 4px 15px rgba(102, 126, 234, 0.4)";
+                }}
+                >
+                    📝 Report Missing Person
+                </Link>
+                <Link to="/found-missing" style={{
+                    padding: "15px 30px",
+                    backgroundColor: "#764ba2",
+                    color: "white",
+                    textDecoration: "none",
+                    borderRadius: "8px",
+                    fontSize: "1.1rem",
+                    fontWeight: "600",
+                    transition: "all 0.3s ease",
+                    boxShadow: "0 4px 15px rgba(118, 75, 162, 0.4)",
+                    display: "inline-block"
+                }}
+                onMouseEnter={(e) => {
+                    e.target.style.transform = "translateY(-2px)";
+                    e.target.style.boxShadow = "0 6px 20px rgba(118, 75, 162, 0.6)";
+                }}
+                onMouseLeave={(e) => {
+                    e.target.style.transform = "translateY(0)";
+                    e.target.style.boxShadow = "0 4px 15px rgba(118, 75, 162, 0.4)";
+                }}
+                >
+                    🔍 Browse Found & Missing
+                </Link>
+                <Link to="/face-match" style={{
+                    padding: "15px 30px",
+                    backgroundColor: "#f093fb",
+                    color: "white",
+                    textDecoration: "none",
+                    borderRadius: "8px",
+                    fontSize: "1.1rem",
+                    fontWeight: "600",
+                    transition: "all 0.3s ease",
+                    boxShadow: "0 4px 15px rgba(240, 147, 251, 0.4)",
+                    display: "inline-block"
+                }}
+                onMouseEnter={(e) => {
+                    e.target.style.transform = "translateY(-2px)";
+                    e.target.style.boxShadow = "0 6px 20px rgba(240, 147, 251, 0.6)";
+                }}
+                onMouseLeave={(e) => {
+                    e.target.style.transform = "translateY(0)";
+                    e.target.style.boxShadow = "0 4px 15px rgba(240, 147, 251, 0.4)";
+                }}
+                >
+                    🤖 Face Recognition Search
+                </Link>
             </div>
 
             <div className="about" id="about">
