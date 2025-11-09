@@ -1,9 +1,30 @@
 import * as faceapi from "face-api.js";
 
 export const loadFaceModels = async () => {
+  // Get base path - works in both development and production
+  // In Vite, public directory files are copied to the root of the build output
+  // So /models should work in both dev and production if served correctly
+  const getModelBasePath = () => {
+    // Try to detect the base path from the current location
+    const pathname = window.location.pathname;
+    // If we're in a subdirectory (e.g., /app/), extract it
+    // Otherwise use root
+    if (pathname !== '/' && pathname.endsWith('/')) {
+      return pathname.slice(0, -1);
+    }
+    // For SPA routes, the base path is usually just '/'
+    return '';
+  };
+
+  const basePath = getModelBasePath();
+  
   // Try local models first (faster and more reliable), then fallback to CDN
+  // Try multiple path variations to handle different deployment scenarios
   const MODEL_URLS = [
-    "/models", // Local models (prioritized for speed and reliability)
+    `${basePath}/models`, // With detected base path
+    "/models", // Absolute root path (most common)
+    "./models", // Relative path
+    "models", // Relative without leading slash
     "https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights",
     "https://unpkg.com/face-api.js@0.22.2/weights",
   ];
@@ -16,16 +37,44 @@ export const loadFaceModels = async () => {
       console.log(`Attempting to load models from: ${MODEL_URL}`);
       
       // Test if the manifest file is accessible first (for local models)
-      if (MODEL_URL.startsWith('/')) {
+      // Check both absolute paths (starting with /) and relative paths
+      if (MODEL_URL.startsWith('/') || MODEL_URL.startsWith('./') || !MODEL_URL.startsWith('http')) {
         try {
-          const testUrl = `${MODEL_URL}/ssd_mobilenetv1_model-weights_manifest.json`;
-          const response = await fetch(testUrl);
-          if (!response.ok) {
-            console.warn(`Manifest file not accessible at ${testUrl}, status: ${response.status}`);
+          // Try different path formats for production
+          const testUrls = [
+            `${MODEL_URL}/ssd_mobilenetv1_model-weights_manifest.json`,
+            `${MODEL_URL}ssd_mobilenetv1_model-weights_manifest.json`, // In case of trailing slash issue
+            `/ssd_mobilenetv1_model-weights_manifest.json`, // Absolute root
+          ];
+          
+          let manifestResponse = null;
+          let testUrl = null;
+          
+          for (const url of testUrls) {
+            try {
+              const response = await fetch(url, { method: 'HEAD' });
+              if (response.ok) {
+                // Try to actually fetch the JSON
+                const jsonResponse = await fetch(url);
+                if (jsonResponse.ok) {
+                  manifestResponse = jsonResponse;
+                  testUrl = url;
+                  break;
+                }
+              }
+            } catch (e) {
+              // Try next URL
+              continue;
+            }
+          }
+          
+          if (!manifestResponse || !manifestResponse.ok) {
+            console.warn(`Manifest file not accessible at ${MODEL_URL}, trying next source...`);
             continue;
           }
+          
           // Verify we can actually read the manifest - be more lenient with validation
-          const manifest = await response.json();
+          const manifest = await manifestResponse.json();
           if (!manifest) {
             console.warn(`Invalid manifest file at ${testUrl} - null or undefined`);
             continue;
