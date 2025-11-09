@@ -1,95 +1,121 @@
 import React, { useEffect, useState } from "react";
+import Navbar from "../components/navbar";
+import "./FoundMissing.css";
 
 export default function FoundMissing() {
-  const [tab, setTab] = useState("found"); // "found" or "missing"
+  const [tab, setTab] = useState("missing"); // "found" or "missing"
   const [foundList, setFoundList] = useState([]);
   const [missingList, setMissingList] = useState([]);
   const [loading, setLoading] = useState({ found: true, missing: true });
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const base = "http://localhost:5000"; // change if your backend runs elsewhere
+    const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-    const fetchList = async (path, setter, key) => {
+    const fetchList = async (status, setter, key) => {
       try {
-        const res = await fetch(`${base}${path}`);
+        setLoading((prev) => ({ ...prev, [key]: true }));
+        const url = status 
+          ? `${API}/api/missing-persons?status=${status}`
+          : `${API}/api/missing-persons?status=missing`;
+        const res = await fetch(url);
         if (!res.ok) throw new Error(`Failed to fetch ${key}`);
         const data = await res.json();
         setter(Array.isArray(data) ? data : []);
+        setError(null);
       } catch (err) {
+        console.error(`Error fetching ${key}:`, err);
         setError(err.message || "Fetch error");
+        setter([]);
       } finally {
         setLoading((prev) => ({ ...prev, [key]: false }));
       }
     };
 
-    // For now, fetch all users as a placeholder
-    // In a real app, you'd have separate endpoints for found/missing persons
-    fetchList("/api/users", setFoundList, "found");
-    fetchList("/api/users", setMissingList, "missing");
+    // Fetch found and missing persons
+    fetchList("found", setFoundList, "found");
+    fetchList("missing", setMissingList, "missing");
   }, []);
 
   const renderRecord = (p) => (
-    <li key={p._id || p.id} className="record-item" style={{ marginBottom: 12 }}>
-      <strong>{p.name || "Unknown"}</strong>
+    <div key={p._id || p.id} className="record-card">
+      <div className="record-header">
+        <h3>{p.name || "Unknown"}</h3>
+        <span className={`status-badge status-${p.status || "missing"}`}>
+          {p.status === "found" ? "✅ Found" : "🔍 Missing"}
+        </span>
+      </div>
+      
       {p.photo && (
-        <div style={{ marginTop: 6 }}>
-          <img src={p.photo} alt={p.name || ""} style={{ maxWidth: 200, height: "auto" }} />
+        <div className="record-photo">
+          <img src={p.photo} alt={p.name || ""} />
         </div>
       )}
-      {p.description && <div style={{ marginTop: 6 }}>{p.description}</div>}
-    </li>
+      
+      <div className="record-details">
+        {p.age && <p><strong>Age:</strong> {p.age} years</p>}
+        {p.lastSeen && <p><strong>Last Seen:</strong> {p.lastSeen}</p>}
+        {p.createdAt && (
+          <p><strong>Reported:</strong> {new Date(p.createdAt).toLocaleDateString()}</p>
+        )}
+      </div>
+    </div>
   );
 
   const activeList = tab === "found" ? foundList : missingList;
   const isLoading = tab === "found" ? loading.found : loading.missing;
 
   return (
-    <div className="found-missing-page" style={{ padding: 16 }}>
-      <h1>Found & Missing</h1>
+    <>
+      <Navbar />
+      <div className="found-missing-page">
+        <div className="page-header">
+          <h1>🔍 Found & Missing Persons</h1>
+          <p>Browse through reported missing and found persons</p>
+        </div>
 
-      <div style={{ marginBottom: 12 }}>
-        <button
-          onClick={() => setTab("found")}
-          style={{
-            marginRight: 8,
-            padding: "8px 12px",
-            background: tab === "found" ? "#0d6efd" : "#e9ecef",
-            color: tab === "found" ? "#fff" : "#000",
-            border: "none",
-            borderRadius: 4,
-            cursor: "pointer",
-          }}
-        >
-          Found
-        </button>
+        <div className="tab-container">
+          <button
+            onClick={() => setTab("missing")}
+            className={`tab-button ${tab === "missing" ? "active" : ""}`}
+          >
+            🔍 Missing ({missingList.length})
+          </button>
+          <button
+            onClick={() => setTab("found")}
+            className={`tab-button ${tab === "found" ? "active" : ""}`}
+          >
+            ✅ Found ({foundList.length})
+          </button>
+        </div>
 
-        <button
-          onClick={() => setTab("missing")}
-          style={{
-            padding: "8px 12px",
-            background: tab === "missing" ? "#0d6efd" : "#e9ecef",
-            color: tab === "missing" ? "#fff" : "#000",
-            border: "none",
-            borderRadius: 4,
-            cursor: "pointer",
-          }}
-        >
-          Missing
-        </button>
+        {error && (
+          <div className="error-message">
+            ⚠️ Error: {error}
+          </div>
+        )}
+
+        {isLoading ? (
+          <div className="loading-container">
+            <div className="spinner"></div>
+            <p>Loading {tab} persons...</p>
+          </div>
+        ) : activeList.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">📭</div>
+            <h3>No {tab} persons available</h3>
+            <p>
+              {tab === "missing" 
+                ? "No missing persons have been reported yet."
+                : "No found persons have been reported yet."}
+            </p>
+          </div>
+        ) : (
+          <div className="records-grid">
+            {activeList.map(renderRecord)}
+          </div>
+        )}
       </div>
-
-      {error && <div style={{ color: "red", marginBottom: 12 }}>Error: {error}</div>}
-
-      {isLoading ? (
-        <div>Loading {tab} persons...</div>
-      ) : activeList.length === 0 ? (
-        <div>No {tab} persons available.</div>
-      ) : (
-        <ul className="records-list" style={{ listStyle: "none", padding: 0 }}>
-          {activeList.map(renderRecord)}
-        </ul>
-      )}
-    </div>
+    </>
   );
 }

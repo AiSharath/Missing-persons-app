@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import Navbar from "../components/navbar";
 import { loadFaceModels } from "../faceModelLoader.js";
 import { handleFaceMatching } from "../extractDescriptor.js";
 import "./FaceMatch.css";
@@ -100,8 +101,10 @@ export default function FaceMatch() {
   };
 
   return (
-    <div className="face-match-container">
-      <div className="face-match-card">
+    <>
+      <Navbar />
+      <div className="face-match-container">
+        <div className="face-match-card">
         <h1>🔍 Face Recognition Search</h1>
         <p className="subtitle">
           Upload an image to search for a person in our database
@@ -187,28 +190,79 @@ export default function FaceMatch() {
                 {result.found ? (
                   <div className="result-found">
                     <div className="success-icon">✅</div>
-                    <h2>User Found!</h2>
+                    <h2>Person Found!</h2>
+                    {result.statusUpdated && (
+                      <div style={{
+                        background: "#d4edda",
+                        color: "#155724",
+                        padding: "10px 15px",
+                        borderRadius: "5px",
+                        marginBottom: "15px",
+                        border: "1px solid #c3e6cb"
+                      }}>
+                        <strong>🎉 Status Updated!</strong> This person has been automatically marked as "Found" in the database.
+                      </div>
+                    )}
                     <div className="user-details">
-                      <p><strong>Name:</strong> {result.user.name}</p>
-                      <p><strong>Email:</strong> {result.user.email}</p>
+                      <p><strong>Name:</strong> {(result.person || result.user)?.name}</p>
+                      {(result.person || result.user)?.type === 'missingPerson' ? (
+                        <>
+                          <p><strong>Age:</strong> {(result.person || result.user)?.age}</p>
+                          <p><strong>Last Seen:</strong> {(result.person || result.user)?.lastSeen}</p>
+                          <p><strong>Status:</strong> 
+                            <span style={{
+                              marginLeft: "8px",
+                              padding: "4px 12px",
+                              borderRadius: "12px",
+                              backgroundColor: "#d4edda",
+                              color: "#155724",
+                              fontSize: "0.9em",
+                              fontWeight: "600"
+                            }}>
+                              ✅ {(result.person || result.user)?.status === 'found' ? 'Found' : 'Missing'}
+                            </span>
+                          </p>
+                        </>
+                      ) : (
+                        <p><strong>Email:</strong> {(result.person || result.user)?.email}</p>
+                      )}
                       {result.confidence && (
                         <p>
                           <strong>Confidence:</strong>{" "}
-                          {(result.confidence * 100).toFixed(2)}%
+                          <span style={{ color: result.confidence > 0.8 ? "#28a745" : result.confidence > 0.6 ? "#ffc107" : "#dc3545" }}>
+                            {(result.confidence * 100).toFixed(2)}%
+                          </span>
+                        </p>
+                      )}
+                      {result.distance && (
+                        <p style={{ fontSize: "0.9em", color: "#666" }}>
+                          <strong>Distance:</strong> {result.distance.toFixed(4)}
                         </p>
                       )}
                     </div>
+                    {(result.person || result.user)?.type === 'missingPerson' && (
+                      <div style={{ marginTop: "20px", padding: "15px", background: "#f8f9fa", borderRadius: "8px" }}>
+                        <p style={{ margin: 0, fontSize: "0.95em", color: "#666" }}>
+                          💡 This person will now appear in the <strong>"Found"</strong> tab on the Found & Missing page.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="result-not-found">
                     <div className="not-found-icon">❌</div>
-                    <h2>User Not Found</h2>
+                    <h2>Person Not Found</h2>
                     <p>
                       {result.message ||
                         "No matching person found in the database."}
                     </p>
+                    {result.bestDistance && (
+                      <p style={{ fontSize: "0.9em", color: "#666" }}>
+                        Best match distance: {result.bestDistance.toFixed(4)} (threshold: {result.threshold || 0.6})
+                      </p>
+                    )}
                     <p className="suggestion">
-                      The person might not be registered in our system yet.
+                      The person might not be registered in our system yet, or the face doesn't match closely enough.
                     </p>
                   </div>
                 )}
@@ -216,8 +270,9 @@ export default function FaceMatch() {
             )}
           </>
         )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
