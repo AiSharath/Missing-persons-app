@@ -2,12 +2,10 @@ import * as faceapi from "face-api.js";
 
 export const loadFaceModels = async () => {
   // Try local models first (faster and more reliable), then fallback to CDN
-  // The models are typically in the /weights directory
   const MODEL_URLS = [
     "/models", // Local models (prioritized for speed and reliability)
     "https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights",
     "https://unpkg.com/face-api.js@0.22.2/weights",
-    "https://cdn.jsdelivr.net/npm/face-api.js/models"
   ];
 
   let loaded = false;
@@ -26,9 +24,15 @@ export const loadFaceModels = async () => {
             console.warn(`Manifest file not accessible at ${testUrl}, status: ${response.status}`);
             continue;
           }
-          console.log(`✅ Manifest file accessible at ${testUrl}`);
+          // Verify we can actually read the manifest
+          const manifest = await response.json();
+          if (!manifest || !Array.isArray(manifest) || manifest.length === 0) {
+            console.warn(`Invalid manifest file at ${testUrl}`);
+            continue;
+          }
+          console.log(`✅ Manifest file accessible and valid at ${testUrl}`);
         } catch (fetchErr) {
-          console.warn(`Cannot access manifest file at ${MODEL_URL}:`, fetchErr);
+          console.warn(`Cannot access manifest file at ${MODEL_URL}:`, fetchErr.message);
           continue;
         }
       }
@@ -46,7 +50,16 @@ export const loadFaceModels = async () => {
       await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
       console.log(`✅ faceRecognitionNet loaded`);
 
-      console.log(`✅ All face models loaded successfully from: ${MODEL_URL}`);
+      // Verify models are actually loaded
+      const isModelLoaded = faceapi.nets.ssdMobilenetv1.isLoaded && 
+                            faceapi.nets.faceLandmark68Net.isLoaded && 
+                            faceapi.nets.faceRecognitionNet.isLoaded;
+      
+      if (!isModelLoaded) {
+        throw new Error("Models loaded but isLoaded flags are false");
+      }
+
+      console.log(`✅ All face models loaded and verified from: ${MODEL_URL}`);
       loaded = true;
       break;
     } catch (error) {
@@ -63,60 +76,15 @@ export const loadFaceModels = async () => {
   }
 
   if (!loaded) {
-    // Last resort: try loading models one by one with more detailed error info
-    const detailedErrors = [];
-    const UNPKG_URL = "https://unpkg.com/face-api.js@0.22.2/weights";
-    
-    try {
-      console.log(`Trying sequential loading from: ${UNPKG_URL}`);
-      
-      try {
-        await faceapi.nets.ssdMobilenetv1.loadFromUri(UNPKG_URL);
-        console.log("✅ ssdMobilenetv1 loaded");
-      } catch (e) {
-        detailedErrors.push(`ssdMobilenetv1: ${e.message}`);
-        throw e;
-      }
-
-      try {
-        await faceapi.nets.faceLandmark68Net.loadFromUri(UNPKG_URL);
-        console.log("✅ faceLandmark68Net loaded");
-      } catch (e) {
-        detailedErrors.push(`faceLandmark68Net: ${e.message}`);
-        throw e;
-      }
-
-      try {
-        await faceapi.nets.faceRecognitionNet.loadFromUri(UNPKG_URL);
-        console.log("✅ faceRecognitionNet loaded");
-      } catch (e) {
-        detailedErrors.push(`faceRecognitionNet: ${e.message}`);
-        throw e;
-      }
-
-      console.log(`✅ All face models loaded successfully from: ${UNPKG_URL}`);
-      loaded = true;
-    } catch (finalError) {
-      console.error("All model loading attempts failed");
-      const errorDetails = detailedErrors.length > 0 
-        ? detailedErrors.join("; ") 
-        : (lastError?.message || finalError?.message || "Unknown error");
-      
-      throw new Error(
-        `Failed to load face recognition models. This usually means:\n` +
-        `1. No internet connection\n` +
-        `2. CDN is blocked or unavailable\n` +
-        `3. CORS issues\n\n` +
-        `Error details: ${errorDetails}\n\n` +
-        `Solution: Download models locally and place them in /public/models folder.`
-      );
-    }
-  }
-
-  if (!loaded) {
+    const errorDetails = lastError?.message || "Unknown error";
     throw new Error(
-      `Failed to load face recognition models from all sources. ` +
-      `Last error: ${lastError?.message || "Unknown error"}`
+      `Failed to load face recognition models from all sources.\n\n` +
+      `Tried: ${MODEL_URLS.join(", ")}\n\n` +
+      `Last error: ${errorDetails}\n\n` +
+      `Please ensure:\n` +
+      `1. Models are in /public/models directory\n` +
+      `2. You have internet connection for CDN fallback\n` +
+      `3. Check browser console for detailed errors`
     );
   }
 };
